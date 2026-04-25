@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Debug",
+    "build": {
+      "command": "cmake",
+      "args": ["-B", "build", "-S", "."],
+      "cwd": "$ZED_WORKTREE_ROOT"
+    },
+    "program": "$ZED_WORKTREE_ROOT/build/ccxx",
+    "request": "launch",
+    "adapter": "CodeLLDB"
+  },
+]

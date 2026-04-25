@@ -1,0 +1,41 @@
+[
+  {
+    "label": "build all",
+    "command": "cmake -B build -S . -G Ninja && cmake --build build",
+    "show_command": false,
+    "hide": "on_success"
+  },
+  {
+    "label": "build all and run ccxx",
+    "command": "cmake -B build -S . -G Ninja && cmake --build build && cmake --build build --target ccxx && cd build && ./ccxx.exe",
+    "show_command": false
+  },
+  {
+    "label": "run ccxx",
+    "command": "cd build/bin && ./ccxx.exe",
+    "show_command": false
+  },
+  {
+    "label": "rebuild all",
+    "command": "cmake -B build -S . -G Ninja && cmake --build build --target clean && cmake --build build",
+    "show_command": false,
+    "hide": "on_success"
+  },
+  {
+    "label": "rebuild all and run ccxx",
+    "command": "cmake -B build -S . -G Ninja && cmake --build build --target clean && cmake --build build && cd build/bin && ./ccxx.exe",
+    "show_command": false
+  },
+  {
+    "label": "build ccxx",
+    "command": "cmake --build build --target ccxx",
+    "show_command": false,
+    "hide": "on_success"
+  },
+  {
+    "label": "clean",
+    "command": "cmake --build build --target clean",
+    "show_command": false,
+    "hide": "on_success"
+  },
+]
