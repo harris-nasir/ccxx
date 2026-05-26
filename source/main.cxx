@@ -13,15 +13,29 @@ namespace
   class arguments
   {
   public:
-    arguments(int argc, char** argv)
+    arguments(int argc, char** argv, std::initializer_list<std::pair<std::string_view, std::string_view>> aliases = {})
     {
       arguments_ = std::span<char*>(argv, static_cast<size_t>(argc));
+
+      for (const auto& [from, to] : aliases)
+      {
+        alias_map_[from] = to;
+        alias_map_[to]   = from;
+      }
+
+      bool end_of_options = false;
 
       for (size_t index = 1; index < arguments_.size(); ++index)
       {
         std::string_view current = arguments_[index];
 
-        if (current.starts_with('-'))
+        if (!end_of_options && current == "--")
+        {
+          end_of_options = true;
+          continue;
+        }
+
+        if (!end_of_options && current.starts_with('-'))
         {
           const auto equals_position = current.find('=');
           if (equals_position != std::string_view::npos)
@@ -54,19 +68,37 @@ namespace
     [[nodiscard]]
     auto has(std::string_view option) const -> bool
     {
-      return options_.contains(option);
+      if (options_.contains(option))
+      {
+        return true;
+      }
+
+      const auto it = alias_map_.find(option);
+      return it != alias_map_.end() && options_.contains(it->second);
     }
 
     [[nodiscard]]
     auto get(std::string_view option) const -> std::string
     {
-      auto iterator = options_.find(option);
-      if (iterator == options_.end())
       {
-        return {};
+        const auto it = options_.find(option);
+        if (it != options_.end())
+        {
+          return std::string{it->second};
+        }
       }
 
-      return std::string{iterator->second};
+      const auto alias_it = alias_map_.find(option);
+      if (alias_it != alias_map_.end())
+      {
+        const auto it = options_.find(alias_it->second);
+        if (it != options_.end())
+        {
+          return std::string{it->second};
+        }
+      }
+
+      return {};
     }
 
     [[nodiscard]]
@@ -79,6 +111,7 @@ namespace
     std::span<char*> arguments_;
     std::unordered_map<std::string_view, std::string_view> options_;
     std::vector<std::string_view> positional_arguments_;
+    std::unordered_map<std::string_view, std::string_view> alias_map_;
   };
 
   enum class binary_type : std::uint8_t
@@ -100,13 +133,9 @@ namespace
   {
     options options{};
 
-    if (arguments.has("--name") or arguments.has("-n"))
+    if (arguments.has("--name"))
     {
       options.project_name = arguments.get("--name");
-      if (options.project_name.empty())
-      {
-        options.project_name = arguments.get("-n");
-      }
     }
     else
     {
@@ -117,13 +146,9 @@ namespace
       }
     }
 
-    if (arguments.has("--type") or arguments.has("-t"))
+    if (arguments.has("--type"))
     {
       std::string type = arguments.get("--type");
-      if (type.empty())
-      {
-        type = arguments.get("-t");
-      }
 
       if (type == "executable" or type == "exe")
       {
@@ -135,16 +160,12 @@ namespace
       }
     }
 
-    if (arguments.has("--path") or arguments.has("-p"))
+    if (arguments.has("--path"))
     {
       options.project_root = arguments.get("--path");
-      if (options.project_root.empty())
-      {
-        options.project_root = arguments.get("-p");
-      }
     }
 
-    if (arguments.has("--use-headers") or arguments.has("-h"))
+    if (arguments.has("--use-headers"))
     {
       options.use_headers = true;
     }
@@ -228,12 +249,41 @@ namespace
 
 auto main(int argc, char** argv) -> std::int32_t
 {
-  arguments arguments(argc, argv);
+  arguments arguments(argc, argv,
+                      {
+                          {"-n", "--name"},
+                          {"-t", "--type"},
+                          {"-p", "--path"},
+                          {"-H", "--use-headers"},
+                          {"-h", "--help"},
+                      });
+
+  if (arguments.has("--help"))
+  {
+    std::println("Generate a C++ project scaffold with CMake, clangd, and clang-format config.");
+    std::println();
+    std::println("Usage: ccxx [options] [<project-name>]");
+    std::println();
+    std::println("Options:");
+    std::println("  {:30}{}", "-n, --name <name>", "Project name (also accepts first positional argument)");
+    std::println("  {:30}{}", "-t, --type <type>", "Project type: executable (default), library");
+    std::println("  {:30}{}", "-p, --path <dir>", "Output directory (default: current directory)");
+    std::println("  {:30}{}", "-H, --use-headers", "Generate header/source pair for library type");
+    std::println("  {:30}{}", "-h, --help", "Show this help message");
+    std::println();
+    std::println("Examples:");
+    std::println("  ccxx myapp");
+    std::println("  ccxx --name myapp --type executable");
+    std::println("  ccxx -n mylib -t lib -p ~/projects");
+    std::println("  ccxx -n mylib -t lib -H");
+    return 0;
+  }
 
   options options = create_options_from_arguments(arguments);
   if (options.project_name.empty())
   {
     std::cerr << "Project name is required. Use -n or --name to specify the project name.\n";
+    std::cerr << "See ccxx --help for more information.\n";
     return -1;
   }
 
@@ -253,7 +303,7 @@ auto main(int argc, char** argv) -> std::int32_t
       return -1;
     }
 
-    if (!fs::create_directory(project_root))
+    if (!fs::create_directories(project_root))
     {
       std::cerr << "Failed to create project root directory " << project_root << "\n";
       return -1;
