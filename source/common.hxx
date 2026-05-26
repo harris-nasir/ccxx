@@ -11,6 +11,15 @@ namespace ccxx
 {
   namespace fs = std::filesystem;
 
+  namespace color
+  {
+    inline constexpr auto RESET  = "\033[0m";
+    inline constexpr auto CYAN   = "\033[36m";
+    inline constexpr auto GREEN  = "\033[32m";
+    inline constexpr auto YELLOW = "\033[33m";
+    inline constexpr auto RED    = "\033[31m";
+  } // namespace color
+
   enum class binary_type : std::uint8_t
   {
     EXECUTABLE,
@@ -45,7 +54,8 @@ namespace ccxx
       file_stream_.open(file_path_, std::ios::trunc);
       if (!file_stream_)
       {
-        std::cerr << "Failed to open file " << file_path_ << " for writing.\n";
+        std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET << ": failed to open file " << file_path_
+                  << " for writing.\n";
       }
     }
 
@@ -93,7 +103,8 @@ namespace ccxx
       std::ifstream read_file(file_path_);
       if (!read_file)
       {
-        std::cerr << "Failed to open file " << file_path_ << " for reading.\n";
+        std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET << ": failed to open file " << file_path_
+                  << " for reading.\n";
         return std::nullopt;
       }
       std::string content((std::istreambuf_iterator<char>(read_file)), std::istreambuf_iterator<char>());

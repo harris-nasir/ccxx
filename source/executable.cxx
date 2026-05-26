@@ -5,8 +5,8 @@ namespace ccxx
 {
   void create_executable_project(const fs::path& root, const options& opts)
   {
-    std::println("creating executable \'{}\' (c++{}, {})", opts.project_name, opts.cxx_std,
-                 fs::absolute(root).string());
+    std::println("{}creating{} {}executable{} \'{}\' (c++{}, {})", color::GREEN, color::RESET, color::GREEN, color::RESET,
+                 opts.project_name, opts.cxx_std, fs::absolute(root).string());
 
     {
       file main_file(root / "source/main.cxx");

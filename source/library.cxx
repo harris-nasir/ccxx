@@ -11,22 +11,27 @@ namespace ccxx
       std::string result;
       result.reserve(project.size() + 1 + ns.size() + 15);
       for (auto c : project)
+      {
         result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+      }
       result += '_';
       for (auto c : ns)
+      {
         result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+      }
       result += "_IMPLEMENTATION";
       return result;
     };
 
     if (opts.style == source_style::HEADER_ONLY)
     {
-      std::println("creating header-only library \'{}\' (c++{}, {})", opts.project_name, opts.cxx_std,
-                   fs::absolute(root).string());
+      std::println("{}creating{} {}header-only library{} \'{}\' (c++{}, {})", color::GREEN, color::RESET, color::YELLOW, color::RESET,
+                   opts.project_name, opts.cxx_std, fs::absolute(root).string());
     }
     else
     {
-      std::println("creating library \'{}\' (c++{}, {})", opts.project_name, opts.cxx_std, fs::absolute(root).string());
+      std::println("{}creating{} {}library{} \'{}\' (c++{}, {})", color::GREEN, color::RESET, color::CYAN, color::RESET,
+                   opts.project_name, opts.cxx_std, fs::absolute(root).string());
     }
 
     {

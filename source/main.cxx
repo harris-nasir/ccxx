@@ -149,7 +149,7 @@ namespace
       }
       else
       {
-        std::cerr << "unknown type provided '" << type << "'.";
+        std::cerr << ccxx::color::CYAN << "error" << ccxx::color::RESET << ": unknown type \'" << type << "\'.";
         std::exit(-1);
       }
     }
@@ -177,7 +177,7 @@ namespace
       }
       else
       {
-        std::cerr << "unknown style provided '" << style << "'.";
+        std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET << ": unknown style \'" << style << "\'.";
         std::exit(-1);
       }
     }
@@ -226,7 +226,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println();
     std::println("Usage: ccxx [options] [<project-name>]");
     std::println();
-    std::println("Options:");
+    std::println("{}Options:{}", ccxx::color::CYAN, ccxx::color::RESET);
     std::println("  {:30}{}", "-n, --name <name>", "Project name (also accepts first positional argument)");
     std::println("  {:30}{}", "-t, --type <type>", "Project type: exe/executable, lib/library");
     std::println("  {:30}{}", "-p, --path <dir>", "Output directory (default: current directory)");
@@ -237,7 +237,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");
     std::println();
-    std::println("Examples:");
+    std::println("{}Examples:{}", ccxx::color::CYAN, ccxx::color::RESET);
     std::println("  {:47}{}", "ccxx myapp", "Simple executable (c++23)");
     std::println("  {:47}{}", "ccxx -n myapp --type exe", "Explicit executable");
     std::println("  {:47}{}", "ccxx -n myapp --type exe --style module", "Module-based executable");
@@ -250,8 +250,22 @@ auto main(int argc, char** argv) -> std::int32_t
   ccxx::options options = create_options_from_arguments(arguments);
   if (options.project_name.empty())
   {
-    std::cerr << "project name is required. use -n or --name to specify the project name.\n";
-    std::cerr << "see ccxx --help for more information.\n";
+    std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
+              << ": project name is required. use -n or --name to specify the project name.\n";
+    std::cerr << "  see ccxx --help for more information.\n";
+    return -1;
+  }
+
+  if (options.binary_type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::MODULE)
+  {
+    std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
+              << ": \'module\' style is not supported for library projects.\n";
+    return -1;
+  }
+  if (options.binary_type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::HEADER_ONLY)
+  {
+    std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
+              << ": \'header-only\' style is not supported for executable projects.\n";
     return -1;
   }
 
@@ -278,27 +292,18 @@ auto main(int argc, char** argv) -> std::int32_t
       }
       else
       {
-        std::cerr << "project root directory already exists " << project_root << "\n";
+        std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET << ": project root directory already exists "
+                  << project_root << "\n";
         return -1;
       }
     }
 
     if (!fs::create_directories(project_root))
     {
-      std::cerr << "failed to create project root directory " << project_root << "\n";
+      std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET << ": failed to create project root directory "
+                << project_root << "\n";
       return -1;
     }
-  }
-
-  if (options.binary_type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::MODULE)
-  {
-    std::cerr << "\'module\' style is not supported for library projects. \n";
-    return -1;
-  }
-  if (options.binary_type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::HEADER_ONLY)
-  {
-    std::cerr << "\'header-only\' style is not supported for exectuable projects. \n";
-    return -1;
   }
 
   if (options.style == ccxx::source_style::MODULE)
@@ -470,7 +475,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::string command = "git -C \"" + project_root.string() + "\" init -b main";
     if (std::system(command.c_str()) != 0)
     {
-      std::cerr << "warning: failed to initialize git repository.\n";
+      std::cerr << ccxx::color::YELLOW << "warning" << ccxx::color::RESET << ": failed to initialize git repository.\n";
     }
   }
 }
