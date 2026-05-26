@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -122,11 +123,14 @@ namespace
 
   struct options
   {
-
     std::string project_name;
     std::filesystem::path project_root{};
     bool use_headers{false};
     binary_type binary_type{binary_type::EXECUTABLE};
+    std::string cxx_std{"23"};
+    bool init_git{false};
+    bool force{false};
+    std::string namespace_name;
   };
 
   auto create_options_from_arguments(const arguments& arguments) -> options
@@ -168,6 +172,26 @@ namespace
     if (arguments.has("--use-headers"))
     {
       options.use_headers = true;
+    }
+
+    if (arguments.has("--std"))
+    {
+      options.cxx_std = arguments.get("--std");
+    }
+
+    if (arguments.has("--git"))
+    {
+      options.init_git = true;
+    }
+
+    if (arguments.has("--force"))
+    {
+      options.force = true;
+    }
+
+    if (arguments.has("--namespace"))
+    {
+      options.namespace_name = arguments.get("--namespace");
     }
 
     return options;
@@ -256,6 +280,10 @@ auto main(int argc, char** argv) -> std::int32_t
                           {"-p", "--path"},
                           {"-H", "--use-headers"},
                           {"-h", "--help"},
+                          {"-s", "--std"},
+                          {"-g", "--git"},
+                          {"-f", "--force"},
+                          {"-N", "--namespace"},
                       });
 
   if (arguments.has("--help"))
@@ -268,7 +296,11 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-n, --name <name>", "Project name (also accepts first positional argument)");
     std::println("  {:30}{}", "-t, --type <type>", "Project type: executable (default), library");
     std::println("  {:30}{}", "-p, --path <dir>", "Output directory (default: current directory)");
+    std::println("  {:30}{}", "-s, --std <num>", "C++ standard (20, 23, 26; default: 23)");
+    std::println("  {:30}{}", "-N, --namespace <name>", "Namespace for library code (default: project name)");
     std::println("  {:30}{}", "-H, --use-headers", "Generate header/source pair for library type");
+    std::println("  {:30}{}", "-g, --git", "Initialize git repository (branch: main)");
+    std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");
     std::println();
     std::println("Examples:");
@@ -276,6 +308,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  ccxx --name myapp --type executable");
     std::println("  ccxx -n mylib -t lib -p ~/projects");
     std::println("  ccxx -n mylib -t lib -H");
+    std::println("  ccxx -n myapp --std 20 -g");
     return 0;
   }
 
@@ -285,6 +318,11 @@ auto main(int argc, char** argv) -> std::int32_t
     std::cerr << "Project name is required. Use -n or --name to specify the project name.\n";
     std::cerr << "See ccxx --help for more information.\n";
     return -1;
+  }
+
+  if (options.namespace_name.empty())
+  {
+    options.namespace_name = options.project_name;
   }
 
   fs::path project_root{};
@@ -299,8 +337,15 @@ auto main(int argc, char** argv) -> std::int32_t
     project_root = options.project_root / options.project_name;
     if (fs::exists(project_root))
     {
-      std::cerr << "Project root directory already exists " << project_root << "\n";
-      return -1;
+      if (options.force)
+      {
+        fs::remove_all(project_root);
+      }
+      else
+      {
+        std::cerr << "Project root directory already exists " << project_root << "\n";
+        return -1;
+      }
     }
 
     if (!fs::create_directories(project_root))
@@ -312,11 +357,13 @@ auto main(int argc, char** argv) -> std::int32_t
 
   if (options.binary_type == binary_type::EXECUTABLE)
   {
-    std::println("Creating executable \'{}\'", options.project_name);
+    std::println("Creating executable \'{}\' (c++{}, {})", options.project_name, options.cxx_std,
+                 fs::absolute(project_root).string());
   }
   else if (options.binary_type == binary_type::LIBRARY)
   {
-    std::println("Creating library \'{}\'", options.project_name);
+    std::println("Creating library \'{}\' (c++{}, {})", options.project_name, options.cxx_std,
+                 fs::absolute(project_root).string());
   }
 
   if (!fs::create_directory(project_root / "source"))
@@ -342,7 +389,7 @@ auto main(int argc, char** argv) -> std::int32_t
       file cmake_file(project_root / "CMakeLists.txt");
       cmake_file.writeln("cmake_minimum_required(VERSION 4.0.0)")
           .writeln("project(" + options.project_name + " VERSION 0.1.0 LANGUAGES CXX)")
-          .writeln("set(CMAKE_CXX_STANDARD 23)")
+          .writeln("set(CMAKE_CXX_STANDARD " + options.cxx_std + ")")
           .writeln("set(CMAKE_CXX_STANDARD_REQUIRED ON)")
           .writeln("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)")
           .writeln("")
@@ -357,7 +404,7 @@ auto main(int argc, char** argv) -> std::int32_t
   {
     {
       file main_file(project_root / "source/main.cxx");
-      main_file.writeln("#include \"" + options.project_name + "/" + options.project_name + ".hxx\"")
+      main_file.writeln("#include \"" + options.namespace_name + "/" + options.project_name + ".hxx\"")
           .writeln("")
           .writeln("auto main() -> int")
           .writeln("{")
@@ -366,10 +413,10 @@ auto main(int argc, char** argv) -> std::int32_t
     }
 
     {
-      file header_file(project_root / "source" / options.project_name / (options.project_name + ".hxx"));
+      file header_file(project_root / "source" / options.namespace_name / (options.project_name + ".hxx"));
       header_file.write("#pragma once").writeln("").writeln("void greet();");
 
-      file source_file(project_root / "source" / options.project_name / (options.project_name + ".cxx"));
+      file source_file(project_root / "source" / options.namespace_name / (options.project_name + ".cxx"));
       source_file.writeln("#include \"" + options.project_name + ".hxx\"")
           .writeln("#include <print>")
           .writeln("")
@@ -383,7 +430,7 @@ auto main(int argc, char** argv) -> std::int32_t
       file cmake_file(project_root / "CMakeLists.txt");
       cmake_file.writeln("cmake_minimum_required(VERSION 4.0.0)")
           .writeln("project(" + options.project_name + " VERSION 0.1.0 LANGUAGES CXX)")
-          .writeln("set(CMAKE_CXX_STANDARD 23)")
+          .writeln("set(CMAKE_CXX_STANDARD " + options.cxx_std + ")")
           .writeln("set(CMAKE_CXX_STANDARD_REQUIRED ON)")
           .writeln("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)")
           .writeln("")
@@ -406,7 +453,7 @@ auto main(int argc, char** argv) -> std::int32_t
     clangd_file.writeln("CompileFlags:")
         .writeln("  CompilationDatabase: ./build")
         .writeln("  Add:")
-        .writeln("    - -std=c++23")
+        .writeln("    - -std=c++" + options.cxx_std)
         .writeln("    - -Wall")
         .writeln("    - -Wextra")
         .writeln("    - -Wpedantic")
@@ -545,5 +592,19 @@ auto main(int argc, char** argv) -> std::int32_t
         .writeln("```console")
         .writeln("git submodule add <repository_url> <path/to/dependency>")
         .writeln("```");
+  }
+
+  if (options.init_git)
+  {
+    {
+      file gitignore_file(project_root / ".gitignore");
+      gitignore_file.writeln(".*").writeln("!.gitignore").writeln("build/");
+    }
+
+    std::string command = "git -C \"" + project_root.string() + "\" init -b main";
+    if (std::system(command.c_str()) != 0)
+    {
+      std::cerr << "Warning: failed to initialize git repository.\n";
+    }
   }
 }
