@@ -10,6 +10,9 @@ CompileFlags:
     - -fvisibility=hidden
     - -march=native
 
+Documentation:
+  CommentFormat: Doxygen
+
 Diagnostics:
   UnusedIncludes: Strict
   ClangTidy:
@@ -26,21 +29,37 @@ Diagnostics:
       ]
     Remove:
       [
-        cppcoreguidelines-avoid-const-or-ref-data-members,
         readability-identifier-length,
+        cppcoreguidelines-avoid-const-or-ref-data-members,
         misc-non-private-member-variables-in-classes,
       ]
     CheckOptions:
+      GlobalConstantCase: UPPER_CASE
+      readability-identifier-naming.ConstCase: lower_case
+      readability-identifier-naming.ConstantCase: lower_case
+      readability-identifier-naming.GlobalConstantCase: UPPER_CASE
+
       readability-identifier-naming.VariableCase: lower_case
       readability-identifier-naming.FunctionCase: lower_case
-      readability-identifier-naming.ClassCase: CamelCase
-      readability-identifier-naming.StructCase: CamelCase
+      readability-identifier-naming.ParameterCase: lower_case
+
+      readability-identifier-naming.StructCase: lower_case
+      readability-identifier-naming.ClassCase: lower_case
+      readability-identifier-naming.MemberCase: lower_case
+      readability-identifier-naming.PrivateMemberCase: lower_case
+      readability-identifier-naming.PrivateMemberSuffix: _
+
       readability-identifier-naming.NamespaceCase: lower_case
-      readability-identifier-naming.ConstCase: CamelCase
+      readability-identifier-naming.NamespaceAliasCase: lower_case
+
+      readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+      readability-identifier-naming.MacroParameterCase: lower_case
+
+      readability-identifier-naming.EnumCase: lower_case
+      readability-identifier-naming.EnumConstantCase: UPPER_CASE
+
       cppcoreguidelines-avoid-magic-numbers.IgnoredValues: "0,1,-1"
       modernize-use-trailing-return.CheckReturnVoid: true
-      readability-identifier-naming.ConstantCase: UPPER_CASE
-      GlobalConstantCase: UPPER_CASE
 
 InlayHints:
   Enabled: true
