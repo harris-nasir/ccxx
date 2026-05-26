@@ -214,6 +214,7 @@ auto main(int argc, char** argv) -> std::int32_t
                           {"-t", "--type"},
                           {"-p", "--path"},
                           {"-N", "--namespace"},
+                          {"-S", "--style"},
                           {"-h", "--help"},
                           {"-s", "--std"},
                           {"-g", "--git"},
@@ -232,7 +233,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-p, --path <dir>", "Output directory (default: current directory)");
     std::println("  {:30}{}", "-s, --std <num>", "C++ standard (20, 23, 26; default: 23)");
     std::println("  {:30}{}", "-N, --namespace <name>", "Namespace for library code (default: project name)");
-    std::println("  {:30}{}", "--style <style>", "Source style: separate, module, header-only (default: separate)");
+    std::println("  {:30}{}", "-S, --style <style>", "Source style: separate, module, header-only (default: separate)");
     std::println("  {:30}{}", "-g, --git", "Initialize git repository (branch: main)");
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");

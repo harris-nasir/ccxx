@@ -41,7 +41,7 @@ ccxx .                              # use current directory as project root
 | `-p, --path <dir>`        | Output directory (default: current directory)                         |
 | `-s, --std <num>`         | C++ standard: `20`, `23`, `26` (default: `23`)                        |
 | `-N, --namespace <name>`  | Namespace for library code (default: project name)                    |
-| `--style <style>`         | Source style: `separate`, `module`, `header-only`                     |
+| `-S, --style <style>`     | Source style: `separate`, `module`, `header-only`                     |
 | `-g, --git`               | Initialize git repository (branch: main)                              |
 | `-f, --force`             | Overwrite existing project directory                                  |
 | `-h, --help`              | Show help message                                                     |
