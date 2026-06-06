@@ -171,7 +171,7 @@ namespace
       {
         options.style = ccxx::source_style::MODULE;
       }
-      else if (style == "seperate")
+      else if (style == "separate" or style == "seperate")
       {
         options.style = ccxx::source_style::SEPARATE;
       }
@@ -353,8 +353,9 @@ auto main(int argc, char** argv) -> std::int32_t
         .writeln("    Remove:")
         .writeln("      [")
         .writeln("        cppcoreguidelines-avoid-const-or-ref-data-members,")
+        .writeln("        cppcoreguidelines-avoid-magic-numbers,")
         .writeln("        readability-identifier-length,")
-        .writeln("        misc-non-private-member-variables-in-classes,")
+        .writeln("        readability-magic-numbers,")
         .writeln("      ]")
         .writeln("    CheckOptions:")
         .writeln("      GlobalConstantCase: UPPER_CASE")
