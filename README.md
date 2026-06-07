@@ -100,6 +100,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clang-format
 ├── README.md
 └── source/
+    ├── defines.hxx 
     └── main.cxx
 ```
 
@@ -112,6 +113,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clang-format
 ├── README.md
 └── source/
+    ├── defines.ixx
     ├── main.cxx
     └── <project>.ixx
 ```
@@ -125,6 +127,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clang-format
 ├── README.md
 └── source/
+    ├── defines.hxx
     └── <namespace>/
         ├── <project>.hxx
         └── <project>.cxx
@@ -165,3 +168,5 @@ alignment, trailing return types).
 
 If `--git` is provided, a `.gitignore` is generated and the repository is
 initialized with `main` as the default branch.
+
+All projects come with a `defines` header / module file, that contains convenient type aliases for primitive c++ types.
