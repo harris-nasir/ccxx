@@ -1,0 +1,7 @@
+.*
+
+!.zed
+!.gitmodules
+!.gitignore
+
+build/
