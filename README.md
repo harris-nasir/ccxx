@@ -1,23 +1,37 @@
-# ccxx
+# ccxx &nbsp; &mdash; &nbsp; C++ project scaffold generator
 
-A C++ project scaffold generator. Creates ready-to-build C++ projects with
-CMake, clangd, and clang-format configuration.
+![Version](https://img.shields.io/badge/version-0.2.0-darkgreen)
 
-Supports executable and library projects with multiple source styles:
-separate headers and sources, header-only libraries (stb-style), and
-C++20 module-based executables.
+**ccxx** generates ready-to-build C++ projects with sensible defaults — CMake,
+clangd integration, and clang-format all wired up from the start. Use the
+interactive TUI wizard to explore options, or skip straight to code with CLI
+flags.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/ccxx_tui_demo.gif">
+  <img src="assets/ccxx_tui_demo.gif" alt="ccxx TUI demo" width="720">
+</picture>
+
+Supports executable and library projects across three source layouts:
+
+- **Separate** &mdash; headers (`.hxx`) and sources (`.cxx`) side by side
+- **Modules** &mdash; C++20 modules (`.ixx`) for cutting-edge compilation
+- **Header-only** &mdash; single-header libraries (stb-style) with `IMPLEMENTATION` guard
 
 ---
 
 ## Quick start
 
 ```console
-# Build ccxx itself
+# Build ccxx
 cmake -S . -B build
 cmake --build build
 
-# Generate a new project
-ccxx myapp
+# Launch the interactive wizard
+./build/ccxx
+
+# Or generate a project in one command
+./build/ccxx myapp
 cd myapp
 cmake -S . -B build && cmake --build build
 ./build/myapp
@@ -25,47 +39,80 @@ cmake -S . -B build && cmake --build build
 
 ---
 
+## Features
+
+- **Interactive wizard** &mdash; step-through TUI with keyboard navigation
+- **CLI-first** &mdash; every wizard option is available as a flag for scripting
+- **Three source styles** &mdash; separate, C++20 modules, or header-only
+- **Strict tooling** &mdash; clangd with thorough clang-tidy checks,
+  clang-format with Allman braces and 2-space indent
+- **CMake 4.2** &mdash; modern CMake with `FILE_SET CXX_MODULES` for module
+  projects
+- **Git ready** &mdash; optional `git init` with `.gitignore`
+
+---
+
 ## Usage
 
-```console
+```
 ccxx [options] [<project-name>]
 ccxx .                              # use current directory as project root
+ccxx                                # interactive setup wizard
 ```
 
 ### Options
 
-| Option                    | Description                                                           |
-|---------------------------|-----------------------------------------------------------------------|
-| `-n, --name <name>`       | Project name (or provide as positional argument)                      |
-| `-t, --type <type>`       | Project type: `exe` / `executable`, `lib` / `library`                 |
-| `-p, --path <dir>`        | Output directory (default: current directory)                         |
-| `-s, --std <num>`         | C++ standard: `20`, `23`, `26` (default: `23`)                        |
-| `-N, --namespace <name>`  | Namespace for library code (default: project name)                    |
-| `-S, --style <style>`     | Source style: `separate`, `module`, `header-only`                     |
-| `-g, --git`               | Initialize git repository (branch: main)                              |
-| `-f, --force`             | Overwrite existing project directory                                  |
-| `-h, --help`              | Show help message                                                     |
-
-### Types and styles
-
-The `--type` flag selects the project kind, and `--style` refines the
-source layout within that kind.
-
-| `--type`   | `--style`      | Result                                 |
-|------------|----------------|----------------------------------------|
-| `exe`      | `separate`     | Executable with plain `.cxx` sources   |
-| `exe`      | `module`       | Executable using C++20 modules (`.ixx`)|
-| `lib`      | `separate`     | Static library with `.hxx` / `.cxx`    |
-| `lib`      | `header-only`  | Header-only library (stb-style)        |
+| Option                      | Description                                           |
+|-----------------------------|-------------------------------------------------------|
+| `-n, --name <name>`         | Project name (or provide as positional argument)      |
+| `-t, --type <type>`         | Project type: `exe`, `executable`, `lib`, `library`   |
+| `-p, --path <dir>`          | Output directory (default: current directory)         |
+| `-s, --std <num>`           | C++ standard: `20`, `23`, `26` (default: `23`)        |
+| `-N, --namespace <name>`    | Namespace for library code (default: project name)    |
+| `-S, --style <style>`       | Source style: `separate`, `module`, `header-only`     |
+| `-g, --git`                 | Initialize git repository (branch: main)              |
+| `-f, --force`               | Overwrite existing project directory                  |
+| `-h, --help`                | Show help message                                     |
 
 Legacy type aliases (`static`, `static-lib`, `shared`, `shared-lib`,
 `dynamic`) are accepted and map to `lib`. The legacy flag `--with` is
 accepted as an alias for `--style`.
 
-### Examples
+### Interactive wizard
+
+Run `ccxx` without arguments to launch the TUI wizard.  It walks through each
+option one step at a time:
+
+| Step              | Control                    |
+|-------------------|----------------------------|
+| Project Name      | text input                 |
+| Project Type      | executable / library       |
+| Source Style      | separate / module or header-only |
+| C++ Standard      | 20 / 23 / 26               |
+| Git Init          | yes / no                   |
+| Generate          | review and create          |
+
+**Enter** confirms the current step; **Esc** goes back.  Esc on the first step
+cancels entirely.
+
+### Types and styles
+
+The `--type` flag selects the project kind, and `--style` refines the source
+layout within that kind.
+
+| `--type`   | `--style`      | Result                                    |
+|------------|----------------|-------------------------------------------|
+| `exe`      | `separate`     | Executable with plain `.cxx` sources      |
+| `exe`      | `module`       | Executable using C++20 modules (`.ixx`)   |
+| `lib`      | `separate`     | Static library with `.hxx` / `.cxx`       |
+| `lib`      | `header-only`  | Header-only library (stb-style)           |
+
+---
+
+## Examples
 
 ```console
-# Default executable (c++23)
+# Default executable (C++23)
 ccxx myapp
 
 # Module-based executable
@@ -74,7 +121,7 @@ ccxx -n myapp --type exe --style module
 # Static library with separate sources
 ccxx -n mylib --type lib
 
-# Header-only library (stb-style, single header with IMPLEMENTATION guard)
+# Header-only library (single header with IMPLEMENTATION guard)
 ccxx -n mylib --type lib --style header-only
 
 # Library with custom namespace
@@ -100,7 +147,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clang-format
 ├── README.md
 └── source/
-    ├── defines.hxx 
+    ├── defines.hxx
     └── main.cxx
 ```
 
@@ -150,23 +197,31 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 
 ## Output details
 
-Generated CMakeLists.txt use `cmake_minimum_required(VERSION 4.2.3)`,
+Generated `CMakeLists.txt` files use `cmake_minimum_required(VERSION 4.2.3)`,
 set `CMAKE_CXX_STANDARD` to the requested standard, and enable
 `CMAKE_EXPORT_COMPILE_COMMANDS` for clangd integration.
 
-- **Executable projects** use `add_executable()` with `GLOB_RECURSE`.
-- **Module projects** use `target_sources()` with
-  `FILE_SET CXX_MODULES PRIVATE`.
-- **Library projects** use `add_library(... STATIC ...)` with
-  `GLOB_RECURSE`.
-- **Header-only projects** use `add_library(... INTERFACE)` with
-  `target_include_directories(... INTERFACE source)`.
+- **Executable** &mdash; `add_executable()` with `GLOB_RECURSE`
+- **Modules** &mdash; `target_sources()` with `FILE_SET CXX_MODULES PRIVATE`
+- **Library** &mdash; `add_library(... STATIC ...)` with `GLOB_RECURSE`
+- **Header-only** &mdash; `add_library(... INTERFACE ...)` with
+  `target_include_directories(... INTERFACE source)`
 
-The `.clangd` configuration includes strict clang-tidy checks with the
-project's coding conventions (Allman braces, 2-space indent, left pointer
-alignment, trailing return types).
+The `.clangd` configuration includes strict clang-tidy checks that enforce:
+
+- Allman brace style
+- 2-space indentation  
+- Left pointer alignment (`int* p`)
+- Trailing return types
+
+All projects include a `defines` header or module file that provides convenient
+type aliases for primitive C++ types (`u8`, `s32`, `f64`, etc.).
 
 If `--git` is provided, a `.gitignore` is generated and the repository is
 initialized with `main` as the default branch.
 
-All projects come with a `defines` header / module file, that contains convenient type aliases for primitive c++ types.
+---
+
+## License
+
+[MIT](LICENSE.txt)
