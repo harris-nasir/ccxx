@@ -2,6 +2,7 @@
 #include "executable.hxx"
 #include "library.hxx"
 #include "module.hxx"
+#include "tui.hxx"
 
 #include <cstdlib>
 #include <print>
@@ -238,6 +239,9 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");
     std::println();
+    std::println("{}Interactive Wizard:{} Run ccxx without arguments", ccxx::color::CYAN, ccxx::color::RESET);
+    std::println("  {:30}{}", "", "to launch the interactive project setup wizard.");
+    std::println();
     std::println("{}Examples:{}", ccxx::color::CYAN, ccxx::color::RESET);
     std::println("  {:47}{}", "ccxx myapp", "Simple executable (c++23)");
     std::println("  {:47}{}", "ccxx -n myapp --type exe", "Explicit executable");
@@ -251,10 +255,13 @@ auto main(int argc, char** argv) -> std::int32_t
   ccxx::options options = create_options_from_arguments(arguments);
   if (options.project_name.empty())
   {
-    std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
-              << ": project name is required. use -n or --name to specify the project name.\n";
-    std::cerr << "  see ccxx --help for more information.\n";
-    return -1;
+    options = ccxx::run_wizard();
+
+    if (options.project_name.empty())
+    {
+      std::cerr << ccxx::color::CYAN << "info" << ccxx::color::RESET << ": cancelled.\n";
+      return 0;
+    }
   }
 
   if (options.binary_type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::MODULE)
