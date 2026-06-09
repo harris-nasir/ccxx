@@ -30,10 +30,11 @@ namespace ccxx
       int project_type = 0;
       int source_style = 0;
       int cxx_std      = 1;
-      int init_git     = 0;
+      int init_git     = 1;
+      int init_tests   = 0;
     };
 
-    constexpr auto STEP_COUNT = std::size_t{6};
+    constexpr auto STEP_COUNT = std::size_t{7};
 
     struct step_info
     {
@@ -46,7 +47,8 @@ namespace ccxx
         {.title = "Project Type", .prompt = "Select the project type"},
         {.title = "Source Style", .prompt = "Select the source style"},
         {.title = "C++ Standard", .prompt = "Select the C++ standard"},
-        {.title = "Git Init", .prompt = "Initialize a git repository?"},
+        {.title = "Tests", .prompt = "Generate test infrastructure?"},
+        {.title = "Git", .prompt = "Initialize a git repository?"},
     }};
 
     auto step_value(const wizard_state& state, std::size_t index) -> std::string
@@ -74,6 +76,8 @@ namespace ccxx
           return "26";
         }
       case 4:
+        return state.init_tests == 0 ? "yes" : "no";
+      case 5:
         return state.init_git == 0 ? "no" : "yes";
       default:
         return {};
@@ -154,6 +158,7 @@ namespace ccxx
         lines.push_back(item("Standard", "C++26"));
         break;
       }
+      lines.push_back(item("Tests", state.init_tests == 0 ? "yes" : "no"));
       lines.push_back(item("Git", state.init_git == 0 ? "no" : "yes"));
 
       return vbox(std::move(lines));
@@ -206,7 +211,8 @@ namespace ccxx
         break;
       }
 
-      result.init_git = (state.init_git != 0);
+      result.init_tests = (state.init_tests == 0);
+      result.init_git   = (state.init_git != 0);
       return result;
     }
 
@@ -233,6 +239,9 @@ namespace ccxx
     auto std_entries = std::vector<std::string>{"20", "23", "26"};
     auto std_toggle  = Toggle(&std_entries, &state.cxx_std);
 
+    auto tests_entries = std::vector<std::string>{"yes", "no"};
+    auto tests_toggle  = Toggle(&tests_entries, &state.init_tests);
+
     auto git_entries = std::vector<std::string>{"no", "yes"};
     auto git_toggle  = Toggle(&git_entries, &state.init_git);
 
@@ -244,6 +253,7 @@ namespace ccxx
             type_toggle,
             style_toggle_tab,
             std_toggle,
+            tests_toggle,
             git_toggle,
             generate_section,
         },
@@ -261,7 +271,7 @@ namespace ccxx
           case 0:
             input_area = name_input->Render() | size(WIDTH, GREATER_THAN, 35); // NOLINT
             break;
-          case 5: // NOLINT
+          case 6: // NOLINT
             input_area = generate_section->Render();
             break;
           default:

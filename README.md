@@ -75,6 +75,7 @@ ccxx                                # interactive setup wizard
 | `-N, --namespace <name>`    | Namespace for library code (default: project name)    |
 | `-S, --style <style>`       | Source style: `separate`, `module`, `header-only`     |
 | `-g, --git`                 | Initialize git repository (branch: main)              |
+| `-T, --tests <yes|no>`     | Generate test infrastructure (default: yes)           |
 | `-f, --force`               | Overwrite existing project directory                  |
 | `-h, --help`                | Show help message                                     |
 
@@ -94,6 +95,7 @@ option one step at a time:
 | Source Style      | separate / module or header-only |
 | C++ Standard      | 20 / 23 / 26               |
 | Git Init          | yes / no                   |
+| Tests             | yes / no                   |
 | Generate          | review and create          |
 
 **Enter** confirms the current step; **Esc** goes back.  Esc on the first step
@@ -130,6 +132,9 @@ ccxx -n mylib --type lib --style header-only
 
 # Library with custom namespace
 ccxx -n mylib --type lib --style header-only -N myns
+
+# Executable without test infrastructure
+ccxx -n myapp -T no
 
 # Executable at a specific path with C++20 and git init
 ccxx -n myapp --std 20 -g -p ~/projects
@@ -225,14 +230,16 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 
 ## Output details
 
-Generated `CMakeLists.txt` set `CMAKE_CXX_STANDARD` to the requested standard, and enable
+Generated `CMakeLists.txt` files use `cmake_minimum_required(VERSION 3.30)`,
+set `CMAKE_CXX_STANDARD` to the requested standard, and enable
 `CMAKE_EXPORT_COMPILE_COMMANDS` for clangd integration.
 
 All project types include a `cmake/CompilerWarnings.cmake` module that
-provides sensible, compiler-agnostic warning flags per target. Tests are
-generated under `tests/` and gated behind a `<PROJECT>_BUILD_TESTS` option.
+provides sensible, compiler-agnostic warning flags per target. Tests can be
+generated under `tests/` (opt out via `-T no`) and are gated behind a
+`<PROJECT>_BUILD_TESTS` CMake option.
 
-- **Executable** &mdash; library component (`<project>_lib`) with thin
+- **Executable** &mdash; library component (`lib<project>`) with thin
   `main()` wrapper; tests link against the library
 - **Modules** &mdash; `target_sources()` with `FILE_SET CXX_MODULES PRIVATE`
 - **Library** &mdash; modern subproject layout with `target_sources()`,

@@ -40,7 +40,8 @@ namespace ccxx
     binary_type binary_type{binary_type::EXECUTABLE};
     source_style style{source_style::SEPARATE};
     std::string cxx_std{"23"};
-    bool init_git{false};
+    bool init_tests{true};
+    bool init_git{true};
     bool force{false};
     std::string namespace_name;
   };

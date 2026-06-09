@@ -188,6 +188,15 @@ namespace
       options.cxx_std = arguments.get("--std");
     }
 
+    if (arguments.has("--tests"))
+    {
+      auto tests_val = arguments.get("--tests");
+      if (tests_val == "no" || tests_val == "false" || tests_val == "0")
+      {
+        options.init_tests = false;
+      }
+    }
+
     if (arguments.has("--git"))
     {
       options.init_git = true;
@@ -220,6 +229,7 @@ auto main(int argc, char** argv) -> std::int32_t
                           {"-s", "--std"},
                           {"-g", "--git"},
                           {"-f", "--force"},
+                          {"-T", "--tests"},
                       });
 
   if (arguments.has("--help"))
@@ -236,6 +246,7 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-N, --namespace <name>", "Namespace for library code (default: project name)");
     std::println("  {:30}{}", "-S, --style <style>", "Source style: separate, module, header-only (default: separate)");
     std::println("  {:30}{}", "-g, --git", "Initialize git repository (branch: main)");
+    std::println("  {:30}{}", "-T, --tests", "Generate test infrastructure (default: yes)");
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");
     std::println();

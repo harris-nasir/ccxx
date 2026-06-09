@@ -117,39 +117,52 @@ namespace ccxx
           .writeln("")
           .writeln("include(cmake/CompilerWarnings.cmake)")
           .writeln("")
-          .writeln("option(" + option_prefix + "_BUILD_TESTS \"Build tests\" ON)")
-          .writeln("")
           .writeln("add_subdirectory(source/" + opts.project_name + ")")
-          .writeln("")
-          .writeln("add_executable(${PROJECT_NAME} source/main.cxx)")
+          .writeln("");
+
+      if (opts.init_tests)
+      {
+        cmake_file.writeln("option(" + option_prefix + "_BUILD_TESTS \"Build tests\" ON)").writeln("");
+      }
+
+      cmake_file.writeln("add_executable(${PROJECT_NAME} source/main.cxx)")
           .writeln("target_link_libraries(${PROJECT_NAME} PRIVATE lib" + opts.project_name + ")")
           .writeln("set_project_warnings(${PROJECT_NAME})")
-          .writeln("")
-          .writeln("if(" + option_prefix + "_BUILD_TESTS)")
-          .writeln("    enable_testing()")
-          .writeln("    add_subdirectory(tests)")
-          .writeln("endif()")
           .writeln("");
+
+      if (opts.init_tests)
+      {
+        cmake_file.writeln("if(" + option_prefix + "_BUILD_TESTS)")
+            .writeln("    enable_testing()")
+            .writeln("    add_subdirectory(tests)")
+            .writeln("endif()")
+            .writeln("");
+      }
+
+      cmake_file.writeln("");
     }
 
+    if (opts.init_tests)
     {
-      file test_cmake(root / "tests" / "CMakeLists.txt");
-      test_cmake.writeln("add_executable(" + opts.project_name + "_test")
-          .writeln("    " + opts.project_name + "/" + opts.project_name + ".test.cxx")
-          .writeln(")")
-          .writeln("")
-          .writeln("target_link_libraries(" + opts.project_name + "_test PRIVATE lib" + opts.project_name + ")")
-          .writeln("")
-          .writeln("add_test(NAME " + opts.project_name + "_test COMMAND " + opts.project_name + "_test)")
-          .writeln("");
-    }
+      {
+        file test_cmake(root / "tests" / "CMakeLists.txt");
+        test_cmake.writeln("add_executable(" + opts.project_name + "_test")
+            .writeln("    " + opts.project_name + "/" + opts.project_name + ".test.cxx")
+            .writeln(")")
+            .writeln("")
+            .writeln("target_link_libraries(" + opts.project_name + "_test PRIVATE lib" + opts.project_name + ")")
+            .writeln("")
+            .writeln("add_test(NAME " + opts.project_name + "_test COMMAND " + opts.project_name + "_test)")
+            .writeln("");
+      }
 
-    {
-      file test_source(root / "tests" / opts.project_name / (opts.project_name + ".test.cxx"));
-      test_source.writeln("#include <" + opts.project_name + "/" + opts.project_name + ".hxx>")
-          .writeln("")
-          .writeln("auto main() -> int { " + opts.namespace_name + "::greet(); }")
-          .writeln("");
+      {
+        file test_source(root / "tests" / opts.project_name / (opts.project_name + ".test.cxx"));
+        test_source.writeln("#include <" + opts.project_name + "/" + opts.project_name + ".hxx>")
+            .writeln("")
+            .writeln("auto main() -> int { " + opts.namespace_name + "::greet(); }")
+            .writeln("");
+      }
     }
   }
 } // namespace ccxx
