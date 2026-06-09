@@ -46,8 +46,10 @@ cmake -S . -B build && cmake --build build
 - **Three source styles** &mdash; separate, C++20 modules, or header-only
 - **Strict tooling** &mdash; clangd with thorough clang-tidy checks,
   clang-format with Allman braces and 2-space indent
-- **CMake 4.2** &mdash; modern CMake with `FILE_SET CXX_MODULES` for module
-  projects
+- **CMake 3.30** &mdash; modern CMake with generator expressions, install/export
+  support, and `FILE_SET CXX_MODULES` for module projects
+- **Compiler warnings** &mdash; per-target warning flags for MSVC, GCC, and Clang,
+  with an opt-in `-Werror` / `/WX` mode
 - **Git ready** &mdash; optional `git init` with `.gitignore`
 
 ---
@@ -143,6 +145,8 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── cmake/
+│   └── CompilerWarnings.cmake
 ├── .clangd
 ├── .clang-format
 ├── README.md
@@ -156,6 +160,8 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── cmake/
+│   └── CompilerWarnings.cmake
 ├── .clangd
 ├── .clang-format
 ├── README.md
@@ -170,14 +176,23 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── cmake/
+│   ├── CompilerWarnings.cmake
+│   └── <project>Config.cmake.in
+├── <project>/                  # subproject directory
+│   ├── CMakeLists.txt
+│   ├── <project>.cxx
+│   └── include/
+│       └── <namespace>/
+│           ├── <project>.hxx
+│           └── defines.hxx
+├── tests/
+│   ├── CMakeLists.txt
+│   └── <project>/
+│       └── <project>.test.cxx
 ├── .clangd
 ├── .clang-format
-├── README.md
-└── source/
-    ├── defines.hxx
-    └── <namespace>/
-        ├── <project>.hxx
-        └── <project>.cxx
+└── README.md
 ```
 
 ### Header-only library (`--type lib --style header-only`)
@@ -197,13 +212,18 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 
 ## Output details
 
-Generated `CMakeLists.txt` files use `cmake_minimum_required(VERSION 4.2.3)`,
-set `CMAKE_CXX_STANDARD` to the requested standard, and enable
+Generated `CMakeLists.txt` set `CMAKE_CXX_STANDARD` to the requested standard, and enable
 `CMAKE_EXPORT_COMPILE_COMMANDS` for clangd integration.
+
+All project types include a `cmake/CompilerWarnings.cmake` module that
+provides sensible, compiler-agnostic warning flags per target.
 
 - **Executable** &mdash; `add_executable()` with `GLOB_RECURSE`
 - **Modules** &mdash; `target_sources()` with `FILE_SET CXX_MODULES PRIVATE`
-- **Library** &mdash; `add_library(... STATIC ...)` with `GLOB_RECURSE`
+- **Library** &mdash; modern subproject layout with `target_sources()`,
+  `target_include_directories()` (build/install generator expressions),
+  `CXX_STANDARD` via `set_target_properties()`, full install/export rules,
+  and a CMake package config for `find_package()` consumers
 - **Header-only** &mdash; `add_library(... INTERFACE ...)` with
   `target_include_directories(... INTERFACE source)`
 

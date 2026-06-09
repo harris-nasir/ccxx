@@ -328,6 +328,79 @@ auto main(int argc, char** argv) -> std::int32_t
   }
 
   {
+    auto to_upper = [](std::string_view s) -> std::string
+    {
+      std::string result;
+      result.reserve(s.size());
+      for (auto c : s)
+      {
+        result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+      }
+      return result;
+    };
+
+    auto option_prefix = to_upper(options.project_name);
+
+    ccxx::file warnings_file(project_root / "cmake" / "CompilerWarnings.cmake");
+    warnings_file.writeln("function(set_project_warnings TARGET_NAME)")
+        .writeln("    option(" + option_prefix + "_WARNINGS_AS_ERRORS \"Treat compiler warnings as errors\" OFF)")
+        .writeln("")
+        .writeln("    if(MSVC)")
+        .writeln("        target_compile_options(${TARGET_NAME} PRIVATE")
+        .writeln("            /W4")
+        .writeln("            /permissive-")
+        .writeln("            /utf-8")
+        .writeln("        )")
+        .writeln("")
+        .writeln("        if(" + option_prefix + "_WARNINGS_AS_ERRORS)")
+        .writeln("            target_compile_options(${TARGET_NAME} PRIVATE /WX)")
+        .writeln("        endif()")
+        .writeln("")
+        .writeln("    else()")
+        .writeln("        target_compile_options(${TARGET_NAME} PRIVATE")
+        .writeln("            -Wall")
+        .writeln("            -Wextra")
+        .writeln("            -Wpedantic")
+        .writeln("            -Wconversion")
+        .writeln("            -Wsign-conversion")
+        .writeln("            -Wshadow")
+        .writeln("            -Wnon-virtual-dtor")
+        .writeln("            -Wold-style-cast")
+        .writeln("            -Wcast-align")
+        .writeln("            -Woverloaded-virtual")
+        .writeln("            -Wnull-dereference")
+        .writeln("            -Wdouble-promotion")
+        .writeln("            -Wformat=2")
+        .writeln("            -Wimplicit-fallthrough")
+        .writeln("            -Wmisleading-indentation")
+        .writeln("            -Wno-unknown-pragmas")
+        .writeln("        )")
+        .writeln("")
+        .writeln("        if(CMAKE_CXX_COMPILER_ID STREQUAL \"GNU\")")
+        .writeln("            target_compile_options(${TARGET_NAME} PRIVATE")
+        .writeln("                -Wduplicated-cond")
+        .writeln("                -Wduplicated-branches")
+        .writeln("                -Wlogical-op")
+        .writeln("                -Wuseless-cast")
+        .writeln("            )")
+        .writeln("        endif()")
+        .writeln("")
+        .writeln("        if(CMAKE_CXX_COMPILER_ID MATCHES \"Clang|IntelLLVM\")")
+        .writeln("            target_compile_options(${TARGET_NAME} PRIVATE")
+        .writeln("                -Wno-c++98-compat")
+        .writeln("                -Wno-c++98-compat-pedantic")
+        .writeln("            )")
+        .writeln("        endif()")
+        .writeln("")
+        .writeln("        if(" + option_prefix + "_WARNINGS_AS_ERRORS)")
+        .writeln("            target_compile_options(${TARGET_NAME} PRIVATE -Werror)")
+        .writeln("        endif()")
+        .writeln("    endif()")
+        .writeln("endfunction()")
+        .writeln("");
+  }
+
+  {
     ccxx::file clangd_file(project_root / ".clangd");
     clangd_file.writeln("CompileFlags:")
         .writeln("  CompilationDatabase: ./build")

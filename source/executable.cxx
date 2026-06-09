@@ -64,16 +64,21 @@ namespace ccxx
 
     {
       file cmake_file(root / "CMakeLists.txt");
-      cmake_file.writeln("cmake_minimum_required(VERSION 4.2.3)")
+      cmake_file.writeln("cmake_minimum_required(VERSION 3.30)")
           .writeln("project(" + opts.project_name + " VERSION 0.1.0 LANGUAGES CXX)")
+          .writeln("")
           .writeln("set(CMAKE_CXX_STANDARD " + opts.cxx_std + ")")
           .writeln("set(CMAKE_CXX_STANDARD_REQUIRED ON)")
           .writeln("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)")
+          .writeln("")
+          .writeln("include(cmake/CompilerWarnings.cmake)")
           .writeln("")
           .writeln("file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS")
           .writeln("  \"${CMAKE_CURRENT_SOURCE_DIR}/source/*.cxx\")")
           .writeln("")
           .writeln("add_executable(${PROJECT_NAME} ${SOURCES})")
+          .writeln("")
+          .writeln("set_project_warnings(${PROJECT_NAME})")
           .writeln("");
     }
   }
