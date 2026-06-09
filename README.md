@@ -51,6 +51,8 @@ cmake -S . -B build && cmake --build build
 - **Compiler warnings** &mdash; per-target warning flags for MSVC, GCC, and Clang,
   with an opt-in `-Werror` / `/WX` mode
 - **Git ready** &mdash; optional `git init` with `.gitignore`
+- **Tests included** &mdash; every project type generates a `tests/` directory
+  wired into CMake/CTest with a build option
 
 ---
 
@@ -150,9 +152,16 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clangd
 ├── .clang-format
 ├── README.md
-└── source/
+├── source/
     ├── defines.hxx
+    ├── <namespace>/
+    │   ├── <project>.hxx
+    │   └── <project>.cxx
     └── main.cxx
+├── tests/
+    ├── CMakeLists.txt
+    └── <project>/
+        └── <project>.test.cxx
 ```
 
 ### Module executable (`--type exe --style module`)
@@ -165,10 +174,14 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ├── .clangd
 ├── .clang-format
 ├── README.md
-└── source/
+├── source/
     ├── defines.ixx
     ├── main.cxx
     └── <project>.ixx
+├── tests/
+    ├── CMakeLists.txt
+    └── <project>/
+        └── <project>.test.cxx
 ```
 
 ### Library (`--type lib`, default style)
@@ -216,9 +229,11 @@ Generated `CMakeLists.txt` set `CMAKE_CXX_STANDARD` to the requested standard, a
 `CMAKE_EXPORT_COMPILE_COMMANDS` for clangd integration.
 
 All project types include a `cmake/CompilerWarnings.cmake` module that
-provides sensible, compiler-agnostic warning flags per target.
+provides sensible, compiler-agnostic warning flags per target. Tests are
+generated under `tests/` and gated behind a `<PROJECT>_BUILD_TESTS` option.
 
-- **Executable** &mdash; `add_executable()` with `GLOB_RECURSE`
+- **Executable** &mdash; library component (`<project>_lib`) with thin
+  `main()` wrapper; tests link against the library
 - **Modules** &mdash; `target_sources()` with `FILE_SET CXX_MODULES PRIVATE`
 - **Library** &mdash; modern subproject layout with `target_sources()`,
   `target_include_directories()` (build/install generator expressions),

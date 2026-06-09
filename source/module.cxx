@@ -6,6 +6,19 @@ namespace ccxx
 {
   void create_module_project(const fs::path& root, const options& opts)
   {
+    auto to_upper = [](std::string_view s) -> std::string
+    {
+      std::string result;
+      result.reserve(s.size());
+      for (auto c : s)
+      {
+        result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(c))));
+      }
+      return result;
+    };
+
+    auto option_prefix = to_upper(opts.project_name);
+
     std::println("creating {}module{} \'{}\' (c++{}, {})", color::GREEN, color::RESET, opts.project_name, opts.cxx_std,
                  fs::absolute(root).string());
 
@@ -92,6 +105,8 @@ namespace ccxx
           .writeln("")
           .writeln("include(cmake/CompilerWarnings.cmake)")
           .writeln("")
+          .writeln("option(" + option_prefix + "_BUILD_TESTS \"Build tests\" ON)")
+          .writeln("")
           .writeln("file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS \"source/*.cxx\")")
           .writeln("file(GLOB_RECURSE MODULE_SOURCES CONFIGURE_DEPENDS \"source/*.ixx\")")
           .writeln("")
@@ -107,7 +122,27 @@ namespace ccxx
           .writeln(")")
           .writeln("")
           .writeln("set_project_warnings(${PROJECT_NAME})")
+          .writeln("")
+          .writeln("if(" + option_prefix + "_BUILD_TESTS)")
+          .writeln("    enable_testing()")
+          .writeln("    add_subdirectory(tests)")
+          .writeln("endif()")
           .writeln("");
+    }
+
+    {
+      file test_cmake(root / "tests" / "CMakeLists.txt");
+      test_cmake.writeln("add_executable(" + opts.project_name + "_test")
+          .writeln("    " + opts.project_name + "/" + opts.project_name + ".test.cxx")
+          .writeln(")")
+          .writeln("")
+          .writeln("add_test(NAME " + opts.project_name + "_test COMMAND " + opts.project_name + "_test)")
+          .writeln("");
+    }
+
+    {
+      file test_source(root / "tests" / opts.project_name / (opts.project_name + ".test.cxx"));
+      test_source.writeln("auto main() -> int { }").writeln("");
     }
   }
 } // namespace ccxx
