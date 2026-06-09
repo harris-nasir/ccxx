@@ -30,7 +30,7 @@ namespace ccxx
       int project_type = 0;
       int source_style = 0;
       int cxx_std      = 1;
-      int init_git     = 1;
+      int init_git     = 0;
       int init_tests   = 0;
     };
 
@@ -76,9 +76,9 @@ namespace ccxx
           return "26";
         }
       case 4:
-        return state.init_tests == 0 ? "yes" : "no";
+        return state.init_git == 0 ? "yes" : "no";
       case 5:
-        return state.init_git == 0 ? "no" : "yes";
+        return state.init_tests == 0 ? "yes" : "no";
       default:
         return {};
       }
@@ -158,8 +158,8 @@ namespace ccxx
         lines.push_back(item("Standard", "C++26"));
         break;
       }
+      lines.push_back(item("Git", state.init_git == 0 ? "yes" : "no"));
       lines.push_back(item("Tests", state.init_tests == 0 ? "yes" : "no"));
-      lines.push_back(item("Git", state.init_git == 0 ? "no" : "yes"));
 
       return vbox(std::move(lines));
     }
@@ -212,7 +212,7 @@ namespace ccxx
       }
 
       result.init_tests = (state.init_tests == 0);
-      result.init_git   = (state.init_git != 0);
+      result.init_git   = (state.init_git == 0);
       return result;
     }
 
@@ -242,7 +242,7 @@ namespace ccxx
     auto tests_entries = std::vector<std::string>{"yes", "no"};
     auto tests_toggle  = Toggle(&tests_entries, &state.init_tests);
 
-    auto git_entries = std::vector<std::string>{"no", "yes"};
+    auto git_entries = std::vector<std::string>{"yes", "no"};
     auto git_toggle  = Toggle(&git_entries, &state.init_git);
 
     auto generate_section = Renderer([&] -> Element { return make_summary(state); });
@@ -269,9 +269,9 @@ namespace ccxx
           switch (state.current_step)
           {
           case 0:
-            input_area = name_input->Render() | size(WIDTH, GREATER_THAN, 35); // NOLINT
+            input_area = name_input->Render() | size(WIDTH, GREATER_THAN, 35);
             break;
-          case 6: // NOLINT
+          case 6:
             input_area = generate_section->Render();
             break;
           default:

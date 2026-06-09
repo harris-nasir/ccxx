@@ -15,6 +15,8 @@ namespace fs = std::filesystem;
 
 namespace
 {
+  constexpr auto VERSION = "0.3.0";
+
   class arguments
   {
   public:
@@ -226,6 +228,7 @@ auto main(int argc, char** argv) -> std::int32_t
                           {"-N", "--namespace"},
                           {"-S", "--style"},
                           {"-h", "--help"},
+                          {"-v", "--version"},
                           {"-s", "--std"},
                           {"-g", "--git"},
                           {"-f", "--force"},
@@ -249,9 +252,10 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-T, --tests", "Generate test infrastructure (default: yes)");
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
     std::println("  {:30}{}", "-h, --help", "Show this help message");
+    std::println("  {:30}{}", "-v, --version", "Show version");
     std::println();
-    std::println("{}Interactive Wizard:{} Run ccxx without arguments", ccxx::color::CYAN, ccxx::color::RESET);
-    std::println("  {:30}{}", "", "to launch the interactive project setup wizard.");
+    std::println("{}Interactive Wizard:{} Run ccxx without arguments to launch the interactive project setup wizard.",
+                 ccxx::color::CYAN, ccxx::color::RESET);
     std::println();
     std::println("{}Examples:{}", ccxx::color::CYAN, ccxx::color::RESET);
     std::println("  {:47}{}", "ccxx myapp", "Simple executable (c++23)");
@@ -260,6 +264,12 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:47}{}", "ccxx -n mylib -t lib -p ~/projects", "Library project at custom path");
     std::println("  {:47}{}", "ccxx -n mylib -t lib --style header-only", "Header-only library");
     std::println("  {:47}{}", "ccxx -n myapp --std 20 -g", "C++20 project with git init");
+    return 0;
+  }
+
+  if (arguments.has("--version"))
+  {
+    std::println("ccxx version {}", VERSION);
     return 0;
   }
 
