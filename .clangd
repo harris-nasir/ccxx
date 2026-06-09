@@ -32,6 +32,8 @@ Diagnostics:
         readability-identifier-length,
         cppcoreguidelines-avoid-const-or-ref-data-members,
         misc-non-private-member-variables-in-classes,
+        cppcoreguidelines-avoid-magic-numbers,
+        readability-magic-numbers,
       ]
     CheckOptions:
       GlobalConstantCase: UPPER_CASE
