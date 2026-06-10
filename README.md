@@ -23,7 +23,10 @@ Supports executable and library projects across three source layouts:
 ## Quick start
 
 ```console
-# Build ccxx
+# Build ccxx (choose your compiler)
+cmake --preset gcc && cmake --build --preset gcc
+
+# Or without presets
 cmake -S . -B build
 cmake --build build
 
@@ -33,7 +36,7 @@ cmake --build build
 # Or generate a project in one command
 ./build/ccxx myapp
 cd myapp
-cmake -S . -B build && cmake --build build
+cmake --preset gcc && cmake --build --preset gcc
 ./build/myapp
 ```
 
@@ -145,6 +148,29 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 
 ---
 
+## CMake presets
+
+Both **ccxx** and every generated project include a `CMakePresets.json` that
+provides three compiler presets — all sharing a single `build/` directory for
+simplicity.
+
+| Preset   | Compiler             | Configure & build                                   |
+|----------|----------------------|-----------------------------------------------------|
+| `gcc`    | GCC (`gcc`/`g++`)   | `cmake --preset gcc && cmake --build --preset gcc`  |
+| `clang`  | Clang (`clang`/`clang++`) | `cmake --preset clang && cmake --build --preset clang` |
+| `msvc`   | MSVC (`cl`/`cl`)     | `cmake --preset msvc && cmake --build --preset msvc` |
+
+All presets use **Ninja** as the underlying generator and output to the same
+`build/` directory — no need to reconfigure when switching compilers (just
+re-run with a different preset).
+
+> **Note:** On Windows, make sure your build environment has the desired
+> compiler on `PATH`. For MSVC, run from a Visual Studio developer command
+> prompt or use `vcvarsall.bat`. For GCC (MinGW) or Clang, ensure the
+> compiler binaries are available in your shell.
+
+---
+
 ## Generated layouts
 
 ### Executable (`--type exe`, default style)
@@ -152,6 +178,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── CMakePresets.json
 ├── cmake/
 │   └── CompilerWarnings.cmake
 ├── .clangd
@@ -174,6 +201,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── CMakePresets.json
 ├── cmake/
 │   └── CompilerWarnings.cmake
 ├── .clangd
@@ -194,6 +222,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── CMakePresets.json
 ├── cmake/
 │   ├── CompilerWarnings.cmake
 │   └── <project>Config.cmake.in
@@ -218,6 +247,7 @@ ccxx -n myapp --type lib --style header-only -N xyz -s 20 -g -f
 ```
 <project>/
 ├── CMakeLists.txt
+├── CMakePresets.json
 ├── .clangd
 ├── .clang-format
 ├── README.md

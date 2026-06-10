@@ -551,13 +551,65 @@ auto main(int argc, char** argv) -> std::int32_t
   }
 
   {
+    ccxx::file presets_file(project_root / "CMakePresets.json");
+    presets_file.writeln(R"({)")
+        .writeln(R"(  "version": 6,)")
+        .writeln(R"(  "configurePresets": [)")
+        .writeln(R"(    {)")
+        .writeln(R"(      "name": "gcc",)")
+        .writeln(R"(      "displayName": "GCC",)")
+        .writeln(R"(      "description": "Configure with GCC using Ninja",)")
+        .writeln(R"(      "generator": "Ninja",)")
+        .writeln(R"(      "binaryDir": "${sourceDir}/build",)")
+        .writeln(R"(      "cacheVariables": {)")
+        .writeln(R"(        "CMAKE_C_COMPILER": "gcc",)")
+        .writeln(R"(        "CMAKE_CXX_COMPILER": "g++")")
+        .writeln(R"(      })")
+        .writeln(R"(    },)")
+        .writeln(R"(    {)")
+        .writeln(R"(      "name": "clang",)")
+        .writeln(R"(      "displayName": "Clang",)")
+        .writeln(R"(      "description": "Configure with Clang using Ninja",)")
+        .writeln(R"(      "generator": "Ninja",)")
+        .writeln(R"(      "binaryDir": "${sourceDir}/build",)")
+        .writeln(R"(      "cacheVariables": {)")
+        .writeln(R"(        "CMAKE_C_COMPILER": "clang",)")
+        .writeln(R"(        "CMAKE_CXX_COMPILER": "clang++")")
+        .writeln(R"(      })")
+        .writeln(R"(    })")
+        .writeln(R"(  ],)")
+        .writeln(R"(  "buildPresets": [)")
+        .writeln(R"(    {)")
+        .writeln(R"(      "name": "gcc",)")
+        .writeln(R"(      "configurePreset": "gcc")")
+        .writeln(R"(    },)")
+        .writeln(R"(    {)")
+        .writeln(R"(      "name": "clang",)")
+        .writeln(R"(      "configurePreset": "clang")")
+        .writeln(R"(    })")
+        .writeln(R"(  ])")
+        .writeln(R"(})");
+  }
+
+  {
     ccxx::file readme_file(project_root / "README.md");
     readme_file.writeln("# Build Instructions")
+        .writeln("")
+        .writeln("Build with CMake presets (choose your compiler):")
+        .writeln("")
+        .writeln("```console")
+        .writeln("cmake --preset clang")
+        .writeln("cmake --build --preset clang")
+        .writeln("```")
+        .writeln("")
+        .writeln("Or without presets:")
         .writeln("")
         .writeln("```console")
         .writeln("cmake -S . -B build")
         .writeln("cmake --build build")
         .writeln("```")
+        .writeln("")
+        .writeln("Available presets: `clang`, `gcc`")
         .writeln("")
         .writeln("# Dependencies")
         .writeln("")
@@ -565,7 +617,10 @@ auto main(int argc, char** argv) -> std::int32_t
         .writeln("")
         .writeln("```console")
         .writeln("git submodule add <repository_url> <path/to/dependency>")
-        .writeln("```");
+        .writeln("```")
+        .writeln("")
+        .writeln("Then include the dependency in your `CMakeLists.txt` with `add_subdirectory` and link it to your "
+                 "target with `target_link_libraries`.");
   }
 
   if (options.init_git)
