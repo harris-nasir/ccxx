@@ -66,16 +66,31 @@ namespace ccxx
     }
 
     {
+      auto use_print = opts.cxx_std >= "23";
       file source_file(root / "source" / opts.project_name / (opts.project_name + ".cxx"));
-      source_file.writeln("#include \"" + opts.project_name + ".hxx\"")
-          .writeln("")
-          .writeln("#include <print>")
-          .writeln("")
-          .writeln("namespace " + opts.namespace_name)
-          .writeln("{")
-          .writeln("  void greet() { std::println(\"Hello, world!\"); }")
-          .writeln("} // namespace " + opts.namespace_name)
-          .writeln("");
+      source_file.writeln("#include \"" + opts.project_name + ".hxx\"").writeln("");
+
+      if (use_print)
+      {
+        source_file.writeln("#include <print>");
+      }
+      else
+      {
+        source_file.writeln("#include <iostream>");
+      }
+
+      source_file.writeln("").writeln("namespace " + opts.namespace_name).writeln("{");
+
+      if (use_print)
+      {
+        source_file.writeln("  void greet() { std::println(\"Hello, world!\"); }");
+      }
+      else
+      {
+        source_file.writeln("  void greet() { std::cout << \"Hello, world!\\n\"; }");
+      }
+
+      source_file.writeln("} // namespace " + opts.namespace_name).writeln("");
     }
 
     {
