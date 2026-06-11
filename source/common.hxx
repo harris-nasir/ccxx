@@ -37,7 +37,7 @@ namespace ccxx
   {
     std::string project_name;
     fs::path project_root{};
-    binary_type binary_type{binary_type::EXECUTABLE};
+    binary_type type{binary_type::EXECUTABLE};
     source_style style{source_style::SEPARATE};
     std::string cxx_std{"23"};
     bool init_tests{true};

@@ -144,11 +144,11 @@ namespace
 
       if (type == "executable" or type == "exe")
       {
-        options.binary_type = ccxx::binary_type::EXECUTABLE;
+        options.type = ccxx::binary_type::EXECUTABLE;
       }
       else if (type == "library" or type == "lib")
       {
-        options.binary_type = ccxx::binary_type::LIBRARY;
+        options.type = ccxx::binary_type::LIBRARY;
       }
       else
       {
@@ -285,13 +285,13 @@ auto main(int argc, char** argv) -> std::int32_t
     }
   }
 
-  if (options.binary_type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::MODULE)
+  if (options.type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::MODULE)
   {
     std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
               << ": \'module\' style is not supported for library projects.\n";
     return -1;
   }
-  if (options.binary_type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::HEADER_ONLY)
+  if (options.type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::HEADER_ONLY)
   {
     std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
               << ": \'header-only\' style is not supported for executable projects.\n";
@@ -339,7 +339,7 @@ auto main(int argc, char** argv) -> std::int32_t
   {
     ccxx::create_module_project(project_root, options);
   }
-  else if (options.binary_type == ccxx::binary_type::EXECUTABLE)
+  else if (options.type == ccxx::binary_type::EXECUTABLE)
   {
     ccxx::create_executable_project(project_root, options);
   }

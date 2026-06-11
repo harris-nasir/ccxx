@@ -187,7 +187,7 @@ namespace ccxx
         return result;
       }
 
-      result.binary_type = (state.project_type == 0) ? binary_type::EXECUTABLE : binary_type::LIBRARY;
+      result.type = (state.project_type == 0) ? binary_type::EXECUTABLE : binary_type::LIBRARY;
 
       if (state.project_type == 0)
       {
