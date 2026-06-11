@@ -20,6 +20,12 @@ Supports executable and library projects across three source layouts:
 
 ---
 
+## Build instructions
+```console
+cmake -B build
+cmake --build build
+```
+
 ## Quick start
 
 ```console
