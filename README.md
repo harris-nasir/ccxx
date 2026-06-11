@@ -1,6 +1,6 @@
 # ccxx &nbsp; &mdash; &nbsp; C++ project scaffold generator
 
-![Version](https://img.shields.io/badge/version-0.2.0-darkgreen)
+![Version](https://img.shields.io/badge/version-0.3.0-darkgreen)
 
 **ccxx** generates ready-to-build C++ projects with sensible defaults — CMake,
 clangd integration, and clang-format all wired up from the start. Use the
@@ -158,7 +158,6 @@ simplicity.
 |----------|----------------------|-----------------------------------------------------|
 | `gcc`    | GCC (`gcc`/`g++`)   | `cmake --preset gcc && cmake --build --preset gcc`  |
 | `clang`  | Clang (`clang`/`clang++`) | `cmake --preset clang && cmake --build --preset clang` |
-| `msvc`   | MSVC (`cl`/`cl`)     | `cmake --preset msvc && cmake --build --preset msvc` |
 
 All presets use **Ninja** as the underlying generator and output to the same
 `build/` directory — no need to reconfigure when switching compilers (just
