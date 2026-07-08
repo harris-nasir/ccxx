@@ -311,6 +311,13 @@ auto main(int argc, char** argv) -> std::int32_t
     return -1;
   }
 
+  if (options.type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::FLAT && options.init_tests)
+  {
+    std::cerr << ccxx::color::YELLOW << "warning" << ccxx::color::RESET
+              << ": \'flat\' style does not have a library target to test against; tests are skipped.\n";
+    options.init_tests = false;
+  }
+
   if (options.namespace_name.empty())
   {
     options.namespace_name = options.project_name;

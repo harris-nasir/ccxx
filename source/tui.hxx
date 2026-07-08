@@ -2,6 +2,7 @@
 
 #include "common.hxx"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <memory>
@@ -331,6 +332,12 @@ namespace ccxx
             }
 
             ++state.current_step;
+
+            if (state.current_step == 2)
+            {
+              auto max_style     = (state.project_type == 0) ? 2 : 1;
+              state.source_style = std::min(state.source_style, max_style);
+            }
             return true;
           }
 
@@ -339,6 +346,12 @@ namespace ccxx
             if (state.current_step > 0)
             {
               --state.current_step;
+
+              if (state.current_step == 1)
+              {
+                state.source_style = 0;
+              }
+
               return true;
             }
 
