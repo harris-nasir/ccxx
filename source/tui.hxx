@@ -62,7 +62,7 @@ namespace ccxx
       case 2:
         if (state.project_type == 0)
         {
-          return state.source_style == 0 ? "separate" : "module";
+          return state.source_style == 0 ? "flat" : state.source_style == 1 ? "separate" : "module";
         }
         return state.source_style == 0 ? "separate" : "header-only";
       case 3:
@@ -139,7 +139,14 @@ namespace ccxx
 
       if (state.project_type == 0)
       {
-        lines.push_back(item("Style", state.source_style == 0 ? "separate (.cxx, .hxx)" : "module (.cxx, .ixx)"));
+        std::string style_label;
+        if (state.source_style == 0)
+          style_label = "flat (.cxx)";
+        else if (state.source_style == 1)
+          style_label = "separate (.cxx, .hxx)";
+        else
+          style_label = "module (.cxx, .ixx)";
+        lines.push_back(item("Style", style_label));
       }
       else
       {
@@ -191,7 +198,12 @@ namespace ccxx
 
       if (state.project_type == 0)
       {
-        result.style = (state.source_style == 0) ? source_style::SEPARATE : source_style::MODULE;
+        if (state.source_style == 0)
+          result.style = source_style::FLAT;
+        else if (state.source_style == 1)
+          result.style = source_style::SEPARATE;
+        else
+          result.style = source_style::MODULE;
       }
       else
       {
@@ -230,7 +242,7 @@ namespace ccxx
     auto type_entries = std::vector<std::string>{"executable", "library"};
     auto type_toggle  = Toggle(&type_entries, &state.project_type);
 
-    auto exe_style_entries = std::vector<std::string>{"separate (.cxx, .hxx)", "module (.cxx, .ixx)"};
+    auto exe_style_entries = std::vector<std::string>{"flat (.cxx)", "separate (.cxx, .hxx)", "module (.cxx, .ixx)"};
     auto lib_style_entries = std::vector<std::string>{"separate (.cxx, .hxx)", "header-only (.hxx)"};
     auto exe_style_toggle  = Toggle(&exe_style_entries, &state.source_style);
     auto lib_style_toggle  = Toggle(&lib_style_entries, &state.source_style);

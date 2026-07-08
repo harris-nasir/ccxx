@@ -28,6 +28,7 @@ namespace ccxx
 
   enum class source_style : std::uint8_t
   {
+    FLAT,
     SEPARATE,
     HEADER_ONLY,
     MODULE

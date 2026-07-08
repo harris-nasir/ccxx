@@ -17,13 +17,14 @@ namespace ccxx
     };
 
     auto option_prefix = to_upper(opts.project_name);
+    auto use_print     = opts.cxx_std >= "23";
 
     std::println("creating {}executable{} \'{}\' (c++{}, {})", color::GREEN, color::RESET, opts.project_name,
                  opts.cxx_std, fs::absolute(root).string());
 
+    auto write_defines = [](file& f)
     {
-      file defines(root / "source/defines.hxx");
-      defines.writeln("#pragma once")
+      f.writeln("#pragma once")
           .writeln("")
           .writeln("using u8 = unsigned char;")
           .writeln("using u16 = unsigned short;")
@@ -50,78 +51,47 @@ namespace ccxx
           .writeln("")
           .writeln("static_assert(sizeof(f32) == 4, \"f32 must be 4 bytes\");")
           .writeln("static_assert(sizeof(f64) == 8, \"f64 must be 8 bytes\");");
-    }
+    };
 
+    if (opts.style == source_style::FLAT)
     {
-      file header_file(root / "source" / opts.project_name / (opts.project_name + ".hxx"));
-      header_file.writeln("#pragma once")
-          .writeln("")
-          .writeln("#include \"defines.hxx\"")
-          .writeln("")
-          .writeln("namespace " + opts.namespace_name)
-          .writeln("{")
-          .writeln("  void greet();")
-          .writeln("}")
-          .writeln("");
-    }
-
-    {
-      auto use_print = opts.cxx_std >= "23";
-      file source_file(root / "source" / opts.project_name / (opts.project_name + ".cxx"));
-      source_file.writeln("#include \"" + opts.project_name + ".hxx\"").writeln("");
-
-      if (use_print)
       {
-        source_file.writeln("#include <print>");
-      }
-      else
-      {
-        source_file.writeln("#include <iostream>");
+        file defines(root / "source/defines.hxx");
+        write_defines(defines);
       }
 
-      source_file.writeln("").writeln("namespace " + opts.namespace_name).writeln("{");
-
-      if (use_print)
-      {
-        source_file.writeln("  void greet() { std::println(\"Hello, world!\"); }");
-      }
-      else
-      {
-        source_file.writeln("  void greet() { std::cout << \"Hello, world!\\n\"; }");
-      }
-
-      source_file.writeln("} // namespace " + opts.namespace_name).writeln("");
-    }
-
-    {
-      file sub_cmake(root / "source" / opts.project_name / "CMakeLists.txt");
-      sub_cmake.writeln("set(LIBRARY_NAME " + opts.project_name + ")")
-          .writeln("add_library(lib${LIBRARY_NAME} STATIC")
-          .writeln("    ${LIBRARY_NAME}.cxx")
-          .writeln(")")
-          .writeln("target_include_directories(lib${LIBRARY_NAME} PUBLIC")
-          .writeln("    ${CMAKE_CURRENT_SOURCE_DIR}/..")
-          .writeln(")")
-          .writeln("set_target_properties(lib${LIBRARY_NAME} PROPERTIES")
-          .writeln("    CXX_STANDARD " + opts.cxx_std)
-          .writeln("    CXX_STANDARD_REQUIRED ON")
-          .writeln("    CXX_EXTENSIONS OFF")
-          .writeln(")")
-          .writeln("set_project_warnings(lib${LIBRARY_NAME})")
-          .writeln("");
-    }
-
-    {
       file main_file(root / "source/main.cxx");
-      main_file.writeln("#include \"" + opts.project_name + "/" + opts.project_name + ".hxx\"")
+      main_file.writeln("#include \"defines.hxx\"").writeln("");
+
+      if (use_print)
+      {
+        main_file.writeln("#include <print>");
+      }
+      else
+      {
+        main_file.writeln("#include <iostream>");
+      }
+
+      main_file.writeln("").writeln("namespace " + opts.namespace_name).writeln("{");
+
+      if (use_print)
+      {
+        main_file.writeln("  void greet() { std::println(\"Hello, world!\"); }");
+      }
+      else
+      {
+        main_file.writeln("  void greet() { std::cout << \"Hello, world!\\n\"; }");
+      }
+
+      main_file.writeln("} // namespace " + opts.namespace_name)
           .writeln("")
           .writeln("auto main() -> i32")
           .writeln("{")
           .writeln("  " + opts.namespace_name + "::greet();")
+          .writeln("  return 0;")
           .writeln("}");
-    }
 
-    {
+      // Root CMakeLists.txt for FLAT: no library, no subdirectory
       file cmake_file(root / "CMakeLists.txt");
       cmake_file.writeln("cmake_minimum_required(VERSION 3.30)")
           .writeln("project(" + opts.project_name + " VERSION 0.1.0 LANGUAGES CXX)")
@@ -131,52 +101,147 @@ namespace ccxx
           .writeln("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)")
           .writeln("")
           .writeln("include(cmake/CompilerWarnings.cmake)")
-          .writeln("")
-          .writeln("add_subdirectory(source/" + opts.project_name + ")")
           .writeln("");
 
-      if (opts.init_tests)
-      {
-        cmake_file.writeln("option(" + option_prefix + "_BUILD_TESTS \"Build tests\" ON)").writeln("");
-      }
-
       cmake_file.writeln("add_executable(${PROJECT_NAME} source/main.cxx)")
-          .writeln("target_link_libraries(${PROJECT_NAME} PRIVATE lib" + opts.project_name + ")")
           .writeln("set_project_warnings(${PROJECT_NAME})")
           .writeln("");
 
-      if (opts.init_tests)
-      {
-        cmake_file.writeln("if(" + option_prefix + "_BUILD_TESTS)")
-            .writeln("    enable_testing()")
-            .writeln("    add_subdirectory(tests)")
-            .writeln("endif()")
-            .writeln("");
-      }
-
       cmake_file.writeln("");
     }
-
-    if (opts.init_tests)
+    else
     {
       {
-        file test_cmake(root / "tests" / "CMakeLists.txt");
-        test_cmake.writeln("add_executable(" + opts.project_name + "_test")
-            .writeln("    " + opts.project_name + "/" + opts.project_name + ".test.cxx")
-            .writeln(")")
+        file defines(root / "source/defines.hxx");
+        write_defines(defines);
+      }
+
+      {
+        file header_file(root / "source" / opts.project_name / (opts.project_name + ".hxx"));
+        header_file.writeln("#pragma once")
             .writeln("")
-            .writeln("target_link_libraries(" + opts.project_name + "_test PRIVATE lib" + opts.project_name + ")")
+            .writeln("#include \"defines.hxx\"")
             .writeln("")
-            .writeln("add_test(NAME " + opts.project_name + "_test COMMAND " + opts.project_name + "_test)")
+            .writeln("namespace " + opts.namespace_name)
+            .writeln("{")
+            .writeln("  void greet();")
+            .writeln("}")
             .writeln("");
       }
 
       {
-        file test_source(root / "tests" / opts.project_name / (opts.project_name + ".test.cxx"));
-        test_source.writeln("#include <" + opts.project_name + "/" + opts.project_name + ".hxx>")
-            .writeln("")
-            .writeln("auto main() -> int { " + opts.namespace_name + "::greet(); }")
+        file source_file(root / "source" / opts.project_name / (opts.project_name + ".cxx"));
+        source_file.writeln("#include \"" + opts.project_name + ".hxx\"").writeln("");
+
+        if (use_print)
+        {
+          source_file.writeln("#include <print>");
+        }
+        else
+        {
+          source_file.writeln("#include <iostream>");
+        }
+
+        source_file.writeln("").writeln("namespace " + opts.namespace_name).writeln("{");
+
+        if (use_print)
+        {
+          source_file.writeln("  void greet() { std::println(\"Hello, world!\"); }");
+        }
+        else
+        {
+          source_file.writeln("  void greet() { std::cout << \"Hello, world!\\n\"; }");
+        }
+
+        source_file.writeln("} // namespace " + opts.namespace_name).writeln("");
+      }
+
+      {
+        file sub_cmake(root / "source" / opts.project_name / "CMakeLists.txt");
+        sub_cmake.writeln("set(LIBRARY_NAME " + opts.project_name + ")")
+            .writeln("add_library(lib${LIBRARY_NAME} STATIC")
+            .writeln("    ${LIBRARY_NAME}.cxx")
+            .writeln(")")
+            .writeln("target_include_directories(lib${LIBRARY_NAME} PUBLIC")
+            .writeln("    ${CMAKE_CURRENT_SOURCE_DIR}/..")
+            .writeln(")")
+            .writeln("set_target_properties(lib${LIBRARY_NAME} PROPERTIES")
+            .writeln("    CXX_STANDARD " + opts.cxx_std)
+            .writeln("    CXX_STANDARD_REQUIRED ON")
+            .writeln("    CXX_EXTENSIONS OFF")
+            .writeln(")")
+            .writeln("set_project_warnings(lib${LIBRARY_NAME})")
             .writeln("");
+      }
+
+      {
+        file main_file(root / "source/main.cxx");
+        main_file.writeln("#include \"" + opts.project_name + "/" + opts.project_name + ".hxx\"")
+            .writeln("")
+            .writeln("auto main() -> i32")
+            .writeln("{")
+            .writeln("  " + opts.namespace_name + "::greet();")
+            .writeln("}");
+      }
+
+      {
+        file cmake_file(root / "CMakeLists.txt");
+        cmake_file.writeln("cmake_minimum_required(VERSION 3.30)")
+            .writeln("project(" + opts.project_name + " VERSION 0.1.0 LANGUAGES CXX)")
+            .writeln("")
+            .writeln("set(CMAKE_CXX_STANDARD " + opts.cxx_std + ")")
+            .writeln("set(CMAKE_CXX_STANDARD_REQUIRED ON)")
+            .writeln("set(CMAKE_EXPORT_COMPILE_COMMANDS ON)")
+            .writeln("")
+            .writeln("include(cmake/CompilerWarnings.cmake)")
+            .writeln("")
+            .writeln("add_subdirectory(source/" + opts.project_name + ")")
+            .writeln("");
+
+        if (opts.init_tests)
+        {
+          cmake_file.writeln("option(" + option_prefix + "_BUILD_TESTS \"Build tests\" ON)").writeln("");
+        }
+
+        cmake_file.writeln("add_executable(${PROJECT_NAME} source/main.cxx)")
+            .writeln("target_link_libraries(${PROJECT_NAME} PRIVATE lib" + opts.project_name + ")")
+            .writeln("set_project_warnings(${PROJECT_NAME})")
+            .writeln("");
+
+        if (opts.init_tests)
+        {
+          cmake_file.writeln("if(" + option_prefix + "_BUILD_TESTS)")
+              .writeln("    enable_testing()")
+              .writeln("    add_subdirectory(tests)")
+              .writeln("endif()")
+              .writeln("");
+        }
+
+        cmake_file.writeln("");
+      }
+
+      if (opts.init_tests)
+      {
+        // Tests for SEPARATE style link against the library
+        {
+          file test_cmake(root / "tests" / "CMakeLists.txt");
+          test_cmake.writeln("add_executable(" + opts.project_name + "_test")
+              .writeln("    " + opts.project_name + "/" + opts.project_name + ".test.cxx")
+              .writeln(")")
+              .writeln("")
+              .writeln("target_link_libraries(" + opts.project_name + "_test PRIVATE lib" + opts.project_name + ")")
+              .writeln("")
+              .writeln("add_test(NAME " + opts.project_name + "_test COMMAND " + opts.project_name + "_test)")
+              .writeln("");
+        }
+
+        {
+          file test_source(root / "tests" / opts.project_name / (opts.project_name + ".test.cxx"));
+          test_source.writeln("#include <" + opts.project_name + "/" + opts.project_name + ".hxx>")
+              .writeln("")
+              .writeln("auto main() -> int { " + opts.namespace_name + "::greet(); }")
+              .writeln("");
+        }
       }
     }
   }

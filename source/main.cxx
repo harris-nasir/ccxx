@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 
 namespace
 {
-  constexpr auto VERSION = "0.3.0";
+  constexpr auto VERSION = "0.3.1";
 
   class arguments
   {
@@ -174,6 +174,10 @@ namespace
       {
         options.style = ccxx::source_style::MODULE;
       }
+      else if (style == "flat")
+      {
+        options.style = ccxx::source_style::FLAT;
+      }
       else if (style == "separate" or style == "seperate")
       {
         options.style = ccxx::source_style::SEPARATE;
@@ -247,7 +251,8 @@ auto main(int argc, char** argv) -> std::int32_t
     std::println("  {:30}{}", "-p, --path <dir>", "Output directory (default: current directory)");
     std::println("  {:30}{}", "-s, --std <num>", "C++ standard (20, 23, 26; default: 23)");
     std::println("  {:30}{}", "-N, --namespace <name>", "Namespace for library code (default: project name)");
-    std::println("  {:30}{}", "-S, --style <style>", "Source style: separate, module, header-only (default: separate)");
+    std::println("  {:30}{}", "-S, --style <style>",
+                 "Source style: flat, separate, module, header-only (default: separate)");
     std::println("  {:30}{}", "-g, --git", "Initialize git repository (branch: main)");
     std::println("  {:30}{}", "-T, --tests", "Generate test infrastructure (default: yes)");
     std::println("  {:30}{}", "-f, --force", "Overwrite existing project directory");
@@ -291,6 +296,14 @@ auto main(int argc, char** argv) -> std::int32_t
               << ": \'module\' style is not supported for library projects.\n";
     return -1;
   }
+
+  if (options.type == ccxx::binary_type::LIBRARY && options.style == ccxx::source_style::FLAT)
+  {
+    std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
+              << ": \'flat\' style is not supported for library projects.\n";
+    return -1;
+  }
+
   if (options.type == ccxx::binary_type::EXECUTABLE && options.style == ccxx::source_style::HEADER_ONLY)
   {
     std::cerr << ccxx::color::RED << "error" << ccxx::color::RESET
